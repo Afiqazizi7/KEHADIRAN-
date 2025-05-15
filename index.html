@@ -118,11 +118,19 @@
     font-weight: 900;
     font-size: 20px;
   }
+  #currentDate {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #283593;
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
   <div class="container" id="attendance-container" role="main">
     <h1>Laporan Kehadiran Pekerja</h1>
+    <div id="currentDate" aria-live="polite"></div>
     <table id="attendance-table" role="grid" aria-label="Jadual Kehadiran Pekerja">
       <thead>
         <tr>
@@ -195,8 +203,71 @@
   </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script>
   const { jsPDF } = window.jspdf;
+
+  // Fungsi dapatkan tarikh hari ini dalam format YYYY-MM-DD
+  function getTodayDate() {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  }
+
+  // Simpan data ke localStorage
+  function saveData() {
+    const table = document.getElementById("attendance-table").tBodies[0];
+    const data = [];
+    for (const row of table.rows) {
+      const nama = row.cells[0].textContent.trim();
+      const status = row.cells[1].textContent.trim();
+      const masa = row.cells[2].textContent.trim();
+      const alasan = row.querySelector('input[type="text"]').value.trim();
+      data.push({ nama, status, masa, alasan });
+    }
+    const today = getTodayDate();
+    localStorage.setItem("attendanceData", JSON.stringify({ date: today, records: data }));
+  }
+
+  // Load data dari localStorage dan populate table
+  function loadData() {
+    const saved = localStorage.getItem("attendanceData");
+    const today = getTodayDate();
+    const currentDateDisplay = document.getElementById("currentDate");
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Kalau tarikh saved sama hari ini, load data
+        if (parsed.date === today) {
+          const data = parsed.records;
+          const table = document.getElementById("attendance-table").tBodies[0];
+          data.forEach((item, i) => {
+            const row = table.rows[i];
+            row.cells[1].textContent = item.status;
+            row.cells[2].textContent = item.masa;
+            const inputAlasan = row.querySelector('input[type="text"]');
+            inputAlasan.value = item.alasan || '';
+            if (item.status.includes('Hadir')) {
+              row.cells[1].innerHTML = '<span class="tick-red">&#10003;</span> Hadir';
+              inputAlasan.disabled = true;
+            } else if (item.status === "Tidak Hadir") {
+              inputAlasan.disabled = false;
+            } else {
+              inputAlasan.disabled = true;
+            }
+          });
+          currentDateDisplay.textContent = "Tarikh: " + today;
+          return;
+        }
+      } catch (e) {
+        console.warn("Error parse localStorage data:", e);
+      }
+    }
+    // Kalau tiada data atau tarikh lain, reset data
+    resetAllRows();
+    currentDateDisplay.textContent = "Tarikh: " + today;
+    saveData();
+  }
 
   function markPresent(btn) {
     const row = btn.closest('tr');
@@ -209,6 +280,7 @@
     time.textContent = now.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' });
     alasan.value = '';
     alasan.disabled = true;
+    saveData();
   }
 
   function markAbsent(btn) {
@@ -221,6 +293,7 @@
     time.textContent = '-';
     alasan.disabled = false;
     alasan.focus();
+    saveData();
   }
 
   function resetRow(btn) {
@@ -230,6 +303,18 @@
     const alasan = row.querySelector('input[type="text"]');
     alasan.value = '';
     alasan.disabled = true;
+    saveData();
+  }
+
+  function resetAllRows() {
+    const table = document.getElementById("attendance-table").tBodies[0];
+    for (const row of table.rows) {
+      row.querySelector('.status').textContent = '';
+      row.querySelector('.time').textContent = '-';
+      const alasan = row.querySelector('input[type="text"]');
+      alasan.value = '';
+      alasan.disabled = true;
+    }
   }
 
   function downloadPDF() {
@@ -244,7 +329,9 @@
     const table = document.getElementById("attendance-table").tBodies[0];
     for (const row of table.rows) {
       const nama = row.cells[0].textContent.trim();
-      const status = row.cells[1].textContent.trim();
+      // Ambil text status tanpa tick merah supaya jelas dalam PDF
+      let status = row.cells[1].textContent.trim();
+      status = status.replace('✓', '').trim();
       const masa = row.cells[2].textContent.trim();
       const alasan = row.querySelector('input[type="text"]').value.trim();
 
@@ -268,7 +355,26 @@
 
     doc.save("laporan_kehadiran_lanskap.pdf");
   }
+
+  // Check tarikh baru setiap 1 minit untuk reset data automatik jika bertukar hari
+  setInterval(() => {
+    const saved = localStorage.getItem("attendanceData");
+    const today = getTodayDate();
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.date !== today) {
+          resetAllRows();
+          saveData();
+          document.getElementById("currentDate").textContent = "Tarikh: " + today;
+        }
+      } catch {}
+    }
+  }, 60000);
+
+  // Load data masa mula-mula buka page
+  loadData();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>
