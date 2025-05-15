@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sistem Kehadiran Pekerja</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: #f0f4ff;
+    margin: 0; padding: 0;
+    display: flex;
+    justify-content: center;
+    padding: 40px 10px;
+  }
+  .container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    padding: 30px 35px;
+    max-width: 900px;
+    width: 100%;
+    overflow-x: auto;
+  }
+  h1 {
+    text-align: center;
+    color: #1a237e;
+    margin-bottom: 30px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 14px;
+    table-layout: fixed;
+    min-width: 720px;
+  }
+  th, td {
+    padding: 14px 10px;
+    text-align: center;
+    background: #e3e9ff;
+    color: #3949ab;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.75);
+    word-wrap: break-word;
+    font-size: 15px;
+  }
+  th {
+    background: #c5cee5;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  td input[type="text"] {
+    width: 95%;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1.6px solid #9fa8da;
+    background: #f5f8ff;
+    color: #3949ab;
+    transition: border-color 0.3s ease;
+  }
+  td input[type="text"]:focus {
+    border-color: #283593;
+    outline: none;
+    background: #e6ebff;
+  }
+  button {
+    padding: 7px 18px;
+    margin: 0 3px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    color: white;
+    box-shadow: 0 3px 6px rgba(57,73,171,0.3);
+    transition: background-color 0.3s ease;
+  }
+  button.hadir {
+    background-color: #3949ab;
+  }
+  button.hadir:hover {
+    background-color: #283593;
+  }
+  button.tidak-hadir {
+    background-color: #e53935;
+  }
+  button.tidak-hadir:hover {
+    background-color: #b71c1c;
+  }
+  button.edit {
+    background-color: #fb8c00;
+  }
+  button.edit:hover {
+    background-color: #f57c00;
+  }
+  #btnDownloadPDF {
+    margin-top: 30px;
+    width: 100%;
+    padding: 14px 0;
+    font-size: 16px;
+    font-weight: 700;
+    background-color: #283593;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(40,53,147,0.45);
+  }
+  #btnDownloadPDF:hover {
+    background-color: #1a237e;
+  }
+  .tick-red {
+    color: #e53935;
+    font-weight: 900;
+    font-size: 20px;
+  }
+</style>
+</head>
+<body>
+  <div class="container" id="attendance-container" role="main">
+    <h1>Laporan Kehadiran Pekerja</h1>
+    <table id="attendance-table" role="grid" aria-label="Jadual Kehadiran Pekerja">
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>Status Kehadiran</th>
+          <th>Masa Hadir</th>
+          <th>Alasan (Jika Tidak Hadir)</th>
+          <th>Tindakan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Aiman</td>
+          <td class="status"></td>
+          <td class="time">-</td>
+          <td><input type="text" placeholder="Nyatakan alasan..." disabled aria-label="Alasan tidak hadir Aiman"></td>
+          <td>
+            <button class="hadir" onclick="markPresent(this)" aria-label="Tandakan Aiman hadir">Hadir</button>
+            <button class="tidak-hadir" onclick="markAbsent(this)" aria-label="Tandakan Aiman tidak hadir">Tidak Hadir</button>
+            <button class="edit" onclick="resetRow(this)" aria-label="Reset Aiman">Edit</button>
+          </td>
+        </tr>
+        <tr>
+          <td>Afiq</td>
+          <td class="status"></td>
+          <td class="time">-</td>
+          <td><input type="text" placeholder="Nyatakan alasan..." disabled aria-label="Alasan tidak hadir Afiq"></td>
+          <td>
+            <button class="hadir" onclick="markPresent(this)" aria-label="Tandakan Afiq hadir">Hadir</button>
+            <button class="tidak-hadir" onclick="markAbsent(this)" aria-label="Tandakan Afiq tidak hadir">Tidak Hadir</button>
+            <button class="edit" onclick="resetRow(this)" aria-label="Reset Afiq">Edit</button>
+          </td>
+        </tr>
+        <tr>
+          <td>Najib</td>
+          <td class="status"></td>
+          <td class="time">-</td>
+          <td><input type="text" placeholder="Nyatakan alasan..." disabled aria-label="Alasan tidak hadir Najib"></td>
+          <td>
+            <button class="hadir" onclick="markPresent(this)" aria-label="Tandakan Najib hadir">Hadir</button>
+            <button class="tidak-hadir" onclick="markAbsent(this)" aria-label="Tandakan Najib tidak hadir">Tidak Hadir</button>
+            <button class="edit" onclick="resetRow(this)" aria-label="Reset Najib">Edit</button>
+          </td>
+        </tr>
+        <tr>
+          <td>Ajim</td>
+          <td class="status"></td>
+          <td class="time">-</td>
+          <td><input type="text" placeholder="Nyatakan alasan..." disabled aria-label="Alasan tidak hadir Ajim"></td>
+          <td>
+            <button class="hadir" onclick="markPresent(this)" aria-label="Tandakan Ajim hadir">Hadir</button>
+            <button class="tidak-hadir" onclick="markAbsent(this)" aria-label="Tandakan Ajim tidak hadir">Tidak Hadir</button>
+            <button class="edit" onclick="resetRow(this)" aria-label="Reset Ajim">Edit</button>
+          </td>
+        </tr>
+        <tr>
+          <td>Paklah</td>
+          <td class="status"></td>
+          <td class="time">-</td>
+          <td><input type="text" placeholder="Nyatakan alasan..." disabled aria-label="Alasan tidak hadir Paklah"></td>
+          <td>
+            <button class="hadir" onclick="markPresent(this)" aria-label="Tandakan Paklah hadir">Hadir</button>
+            <button class="tidak-hadir" onclick="markAbsent(this)" aria-label="Tandakan Paklah tidak hadir">Tidak Hadir</button>
+            <button class="edit" onclick="resetRow(this)" aria-label="Reset Paklah">Edit</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button id="btnDownloadPDF" onclick="downloadPDF()">Muat Turun PDF (Landskap)</button>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const { jsPDF } = window.jspdf;
+
+  function markPresent(btn) {
+    const row = btn.closest('tr');
+    const status = row.querySelector('.status');
+    const time = row.querySelector('.time');
+    const alasan = row.querySelector('input[type="text"]');
+
+    status.innerHTML = '<span class="tick-red">&#10003;</span> Hadir';
+    const now = new Date();
+    time.textContent = now.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' });
+    alasan.value = '';
+    alasan.disabled = true;
+  }
+
+  function markAbsent(btn) {
+    const row = btn.closest('tr');
+    const status = row.querySelector('.status');
+    const time = row.querySelector('.time');
+    const alasan = row.querySelector('input[type="text"]');
+
+    status.textContent = 'Tidak Hadir';
+    time.textContent = '-';
+    alasan.disabled = false;
+    alasan.focus();
+  }
+
+  function resetRow(btn) {
+    const row = btn.closest('tr');
+    row.querySelector('.status').textContent = '';
+    row.querySelector('.time').textContent = '-';
+    const alasan = row.querySelector('input[type="text"]');
+    alasan.value = '';
+    alasan.disabled = true;
+  }
+
+  function downloadPDF() {
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(20);
+    doc.setTextColor("#1a237e");
+    doc.text("Laporan Kehadiran Pekerja", 14, 20);
+
+    const headers = [["Nama", "Status Kehadiran", "Masa Hadir", "Alasan (Jika Tidak Hadir)"]];
+    const rows = [];
+
+    const table = document.getElementById("attendance-table").tBodies[0];
+    for (const row of table.rows) {
+      const nama = row.cells[0].textContent.trim();
+      const status = row.cells[1].textContent.trim();
+      const masa = row.cells[2].textContent.trim();
+      const alasan = row.querySelector('input[type="text"]').value.trim();
+
+      rows.push([nama, status, masa, alasan || "-"]);
+    }
+
+    doc.autoTable({
+      startY: 30,
+      head: headers,
+      body: rows,
+      theme: "striped",
+      headStyles: { fillColor: "#3949ab", textColor: 255 },
+      styles: { fontSize: 12 },
+      columnStyles: {
+        0: { cellWidth: 50 },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 40 },
+        3: { cellWidth: 120 }
+      },
+    });
+
+    doc.save("laporan_kehadiran_lanskap.pdf");
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
